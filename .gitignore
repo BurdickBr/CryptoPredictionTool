@@ -128,3 +128,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 twint/
+bitcoin_tweets/Bitcoin_tweets.csv
