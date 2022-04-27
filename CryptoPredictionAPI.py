@@ -11,6 +11,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=ResourceWarning)
 warnings.filterwarnings('ignore')
 
+import json
 import glob                         # For changing/finding proper directory
 import os                           # For changing/finding proper directory (when opening files)
 import requests
@@ -31,9 +32,26 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis    # Used f
 from typing import Optional
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+
+
+
+# Run app with command: python -m uvicorn CryptoPredictionAPI:app --reload
 app = FastAPI()
 
+origins = [
+    "http://localhost:3000",
+    "http://localhost:8080"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def read_root():
@@ -307,6 +325,8 @@ def generate_prediction(coin: Optional[str] = None):
 
     # make prediction
     prediction = make_live_prediction(fetched_tweets_df, model)
-
+    d = dict(enumerate(prediction.flatten(), 1))
+    resp = json.dumps(d)
     # return prediction
-    return {"Downward Trend":prediction[0][0], "Upward Trend":prediction[0][1]}
+    
+    return resp
