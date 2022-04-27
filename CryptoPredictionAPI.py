@@ -4,7 +4,6 @@
 import pandas as pd                 # Pandas dataframe library
 import pandas_datareader as pdr     # Pandas datareader that allows me to lookup & store live crypto prices from yahoo finance.
 import numpy as np                  # Numpy
-import matplotlib.pyplot as pypl    # Pyplot used to create visuals/graphics based on data 
 from alpha_vantage.timeseries import TimeSeries     # Library used for pulling live price data from alphavantage api
 
 from datetime import datetime, timedelta, timezone             # Datetime library.
@@ -47,7 +46,7 @@ def read_root():
 
 
 # Read in stopwords file to list for sifting tweets later on.
-os.chdir(r'C:\Users\Brand\OneDrive\Documents\GitHub\CryptoPredictionTool\archive')
+os.chdir(r'C:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\archive')
 stopwords_file = open("stopwords.txt", "r+")
 stopwords = list(stopwords_file.read().split('\n'))
 av_api_key = 'GD982KLZ6PZ69GQ0'
@@ -58,13 +57,13 @@ av_api_key = 'GD982KLZ6PZ69GQ0'
 
 
 def read_data(): 
-    path = r'c:\Users\Brand\OneDrive\Documents\GitHub\CryptoPredictionTool\prices\DailyPrices'
+    path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\prices\DailyPrices'
     extension = 'csv'
     os.chdir(path)
     daily_csv_files = glob.glob('*.{}'.format(extension))
 
 
-    path = r'c:\Users\Brand\OneDrive\Documents\GitHub\CryptoPredictionTool\prices\HourlyPrices'
+    path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\prices\HourlyPrices'
     os.chdir(path)
     hourly_csv_files = glob.glob('*.{}'.format(extension))
 
@@ -94,7 +93,7 @@ def read_data():
 # Function for iterating through coins list and storing findings in .csv files
 def search_coins(coins):    
     for coin in coins:
-        path = r'c:\Users\Brand\OneDrive\Documents\GitHub\CryptoPredictionTool\search_results'
+        path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\search_results'
         os.chdir(path)
         #os.mkdir(coin)
         os.chdir(coin)
@@ -133,7 +132,7 @@ def get_sentiment(text):
 def train_model(hourly_coin_data):
     # These are all the columns we actually want to keep for the purposes of training & using the model.
     model_cols = ['open', 'high', 'low', 'Volume USD', 'compound', 'positive', 'negative', 'neutral', 'polarity', 'subjectivity', 'price_change']
-    os.chdir(r'C:\Users\Brand\OneDrive\Documents\GitHub\CryptoPredictionTool\hourly_coin_data')
+    os.chdir(r'C:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\hourly_coin_data')
     
     for i in range(len(hourly_coin_data)):
 
@@ -167,7 +166,7 @@ def send_request(url, headers, params, next_token=None):
 def pull_live_tweets(coin):
 
     # Pull tweets from the last hour
-    path = r'c:\Users\Brand\OneDrive\Documents\GitHub\CryptoPredictionTool\predicted_trends'
+    path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\predicted_trends'
     os.chdir(path)
     #os.chdir(coin)
 
@@ -207,7 +206,7 @@ def pull_live_tweets(coin):
 # Pull financial data from yahoo finance for the current hour
 # Uses AlphaVantage API with their CRYPTO_INTRADAY endpoint.
 def get_prices(coin):
-    path = r'c:\Users\Brand\OneDrive\Documents\GitHub\CryptoPredictionTool\prices\LivePrices'
+    path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\prices\LivePrices'
     os.chdir(path)
     url = f'https://www.alphavantage.co/query?function=CRYPTO_INTRADAY&symbol={coin}&market=USD&interval=1min&apikey={av_api_key}&datatype=csv'
     req = requests.get(url)
@@ -220,9 +219,9 @@ def get_prices(coin):
 def gen_model():
     # These are all the columns we actually want to keep for the purposes of training & using the model.
     model_cols = ['open', 'high', 'low', 'Volume USD', 'compound', 'positive', 'negative', 'neutral', 'polarity', 'subjectivity', 'price_change']
-    os.chdir(r'C:\Users\Brand\OneDrive\Documents\GitHub\CryptoPredictionTool\hourly_coin_data')
+    os.chdir(r'C:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\hourly_coin_data')
 
-    model_df = pd.read_csv('model_df_2.csv')
+    model_df = pd.read_csv('model_df_0.csv')
     model_df.drop(['drop_this'], axis=1, inplace=True)
     # Feature Dataset
     x = model_df
@@ -240,7 +239,7 @@ def gen_model():
     return model
 
 def make_live_prediction(fetched_tweets_df, model):
-    path = r'c:\Users\Brand\OneDrive\Documents\GitHub\CryptoPredictionTool\prices\LivePrices'
+    path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\prices\LivePrices'
     os.chdir(path)    
 
     live_prices = pd.read_csv('AVAX_prices.csv')        # read in live prices csv
@@ -277,7 +276,7 @@ def make_live_prediction(fetched_tweets_df, model):
     live_coin_data.loc[live_coin_data.index[0],'neu'] = neu
 
     # make the prediction
-    return model.predict(live_coin_data)
+    return model.predict_proba(live_coin_data)
     
 
 #|=======|
@@ -294,7 +293,7 @@ def generate_prediction(coin: Optional[str] = None):
     fetched_tweets_df.to_csv('recently_fetched_tweets.csv')
 
     # look up prices for that coin from the last hour
-    path = r'c:\Users\Brand\OneDrive\Documents\GitHub\CryptoPredictionTool\prices\LivePrices'
+    path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\prices\LivePrices'
     os.chdir(path)
     url = f'https://www.alphavantage.co/query?function=CRYPTO_INTRADAY&symbol={coin}&market=USD&interval=1min&apikey={av_api_key}&datatype=csv'
     req = requests.get(url)
@@ -310,4 +309,4 @@ def generate_prediction(coin: Optional[str] = None):
     prediction = make_live_prediction(fetched_tweets_df, model)
 
     # return prediction
-    return {"prediction":prediction[0]}
+    return {"Downward Trend":prediction[0][0], "Upward Trend":prediction[0][1]}
