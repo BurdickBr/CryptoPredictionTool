@@ -33,6 +33,13 @@
   margin-right: 20%
 }
 
+.MyPieChart {
+  margin-left:25%;
+  margin-right:25%;
+  width: 10%;
+  height: 10%
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

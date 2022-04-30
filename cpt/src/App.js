@@ -17,8 +17,17 @@ const options = [
   { value: 'AVAX', label: 'AVAX' }
 ]
 
-const MyComponent = () => (
+const pie_data = [
+  { title: 'Probability of Increase', value: 50, color: "#E38627"},
+  { title: 'Probability of Decrease', value: 50, color: "#6A2135"}
+]
+
+const MySelect = () => (
   <Select options={options} />
+)
+
+const MyPie = () => (
+  <PieChart data={pie_data} />
 )
 
 function App() {
@@ -26,17 +35,13 @@ function App() {
     <div className="App">
       <h1>hello world</h1>
       <div className="MyButton">
-        <Button onClick={testGet}>Button</Button>
+        <Button onClick={testGet}>Get Results</Button>
       </div>
-      <PieChart
-      data={[
-    { title: 'One', value: 10, color: '#E38627' },
-    { title: 'Two', value: 15, color: '#C13C37' },
-    { title: 'Three', value: 20, color: '#6A2135' },
-  ]}
-/>;
+      <div className="MyPieChart">
+        <MyPie></MyPie>
+      </div>
       <div className="MySelect">
-        <MyComponent></MyComponent>
+        <MySelect></MySelect>
       </div>
       
       
