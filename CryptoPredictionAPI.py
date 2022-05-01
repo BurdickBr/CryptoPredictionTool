@@ -11,6 +11,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=ResourceWarning)
 warnings.filterwarnings('ignore')
 
+import random
 import json
 import glob                         # For changing/finding proper directory
 import os                           # For changing/finding proper directory (when opening files)
@@ -303,6 +304,14 @@ def make_live_prediction(fetched_tweets_df, model):
 
 @app.get("/prediction_generator/{coin}")
 def generate_prediction(coin: Optional[str] = None):
+    
+    #This is for testing front-end:
+    num = random.uniform(0,1)
+    
+    mock_prediction = {"1": num, "2": 1 - num}
+    mock_response = json.dumps(mock_prediction)
+    return mock_response
+    
     # Need to take coin from endpoint information
 
     # Run twitter search on that coin

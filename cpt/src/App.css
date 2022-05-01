@@ -34,10 +34,13 @@
 }
 
 .MyPieChart {
-  margin-left:25%;
-  margin-right:25%;
-  width: 10%;
-  height: 10%
+  margin-left:40%;
+  width: 50%;
+  height: 50%
+}
+
+.MyButton {
+  margin-left:75%
 }
 
 @keyframes App-logo-spin {
