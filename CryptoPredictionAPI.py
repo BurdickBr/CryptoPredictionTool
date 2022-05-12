@@ -240,7 +240,7 @@ def gen_model():
     model_cols = ['open', 'high', 'low', 'Volume USD', 'compound', 'positive', 'negative', 'neutral', 'polarity', 'subjectivity', 'price_change']
     os.chdir(r'C:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\hourly_coin_data')
 
-    model_df = pd.read_csv('model_df_0.csv')
+    model_df = pd.read_csv('model_df_1.csv')
     model_df.drop(['drop_this'], axis=1, inplace=True)
     # Feature Dataset
     x = model_df
@@ -305,12 +305,12 @@ def make_live_prediction(fetched_tweets_df, model):
 @app.get("/prediction_generator/{coin}")
 def generate_prediction(coin: Optional[str] = None):
     
-    #This is for testing front-end:
-    num = random.uniform(0,1)
+    # #This is for testing front-end:
+    # num = random.uniform(0,1)
     
-    mock_prediction = {"1": num, "2": 1 - num}
-    mock_response = json.dumps(mock_prediction)
-    return mock_response
+    # mock_prediction = {"1": num, "2": 1 - num}
+    # mock_response = json.dumps(mock_prediction)
+    # return mock_response
     
     # Need to take coin from endpoint information
 

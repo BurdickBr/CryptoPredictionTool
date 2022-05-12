@@ -44,16 +44,12 @@ function App(props) {
     console.log('selection made')
   }
 
-  function hovering(index) {
-    
-  }
-
 
   const lineWidth = 50
 
   return (
     <div className="App">
-      <h1>hello world</h1>
+      <h1>Crypto Price Predictor!</h1>
       <div className="MyButton">
         <Button onClick={getPrediction}>Get Results</Button>
       </div>
@@ -66,6 +62,8 @@ function App(props) {
           <option value='BTC'>BTC</option>
           <option value='ETH'>ETH</option>
           <option value='AVAX'>AVAX</option>
+          <option value='AAVE'>AAVE</option>
+          <option value='BCH'>BCH</option>
         </select>
       </div>  
       <div className="MyPieChart">

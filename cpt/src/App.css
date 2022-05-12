@@ -34,14 +34,14 @@
 }
 
 .MyPieChart {
-  margin-left:40%;
-  width: 50%;
-  height: 50%
+  margin-left:30%;
+  width: 40%;
+  height: 40%
 }
 
-.MyButton {
-  margin-left:75%
-}
+/* .MyButton {
+  margin-left:1%
+} */
 
 @keyframes App-logo-spin {
   from {
