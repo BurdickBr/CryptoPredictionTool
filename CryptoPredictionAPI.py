@@ -54,10 +54,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
 
 #|===========================|
 #| Additional files and keys:|
@@ -69,71 +65,12 @@ os.chdir(r'C:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\archive')
 stopwords_file = open("stopwords.txt", "r+")
 stopwords = list(stopwords_file.read().split('\n'))
 av_api_key = 'GD982KLZ6PZ69GQ0'
+bearer_token = 'AAAAAAAAAAAAAAAAAAAAAJwBbgEAAAAAyi3tWb4jDN72EZqz6dcWgOIizuc%3DsC3xrWGrxPCwiKwqy2fINUgJDs2qKaZNlITIIy75Pss1oiMeTN'
+
 
 #|===========|
 #| Functions |
 #|===========|
-
-
-def read_data(): 
-    path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\prices\DailyPrices'
-    extension = 'csv'
-    os.chdir(path)
-    daily_csv_files = glob.glob('*.{}'.format(extension))
-
-
-    path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\prices\HourlyPrices'
-    os.chdir(path)
-    hourly_csv_files = glob.glob('*.{}'.format(extension))
-
-    # Compile list of all coin names for searching on twitter later
-    daily_coins = []
-    hourly_coins = []
-
-    for coin in daily_csv_files:
-        vals = coin.split("_")
-        coin_name = vals[1][:-4]
-        daily_coins.append(coin_name)
-
-    for coin in hourly_csv_files:
-        vals = coin.split("_")
-        coin_name = vals[0]
-        hourly_coins.append(coin_name)
-
-    # compile list of pandas dataframes for use later.
-    hourly_coin_data = []
-
-    for file in hourly_csv_files:
-        df = pd.read_csv(file)
-        hourly_coin_data.append(df)
-    
-    return hourly_coin_data, hourly_coins
-
-# Function for iterating through coins list and storing findings in .csv files
-def search_coins(coins):    
-    for coin in coins:
-        path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\search_results'
-        os.chdir(path)
-        #os.mkdir(coin)
-        os.chdir(coin)
-        
-        print('performing twitter search for coin:', coin)
-        
-        from_date = '2022-04-17'
-        to_date = '2022-04-19'
-        print(f'searching {from_date} to {to_date}')
-        
-        c = twint.Config()
-        c.Limit = 3000
-        c.Lang = "en"
-        c.Pandas = True
-        c.Search = coin
-        c.Hide_output = True
-        c.Since = from_date
-        c.Until = to_date
-        c.Store_csv = True
-        c.Output = coin + '_' + from_date + '_' + to_date + '_search_result.csv'
-        twint.run.Search(c)
 
 # Need to create function for cleaning the tweets so we can derive the subjectivity and polarity using textblob.
 def sift_tweet(tweet, stop_words):
@@ -148,32 +85,6 @@ def get_sentiment(text):
     sentiment = sia.polarity_scores(text)
     return sentiment
 
-def train_model(hourly_coin_data):
-    # These are all the columns we actually want to keep for the purposes of training & using the model.
-    model_cols = ['open', 'high', 'low', 'Volume USD', 'compound', 'positive', 'negative', 'neutral', 'polarity', 'subjectivity', 'price_change']
-    os.chdir(r'C:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\hourly_coin_data')
-    
-    for i in range(len(hourly_coin_data)):
-
-        model_df = hourly_coin_data[i][model_cols]
-        model_df.to_csv(f'model_df_{i}.csv')
-
-        # Feature Dataset
-        x = model_df
-        # Target Dataset
-        y = np.array(model_df['price_change'])
-        x.drop(['price_change'], axis=1, inplace=True)
-        np.asarray(x)
-
-        # split into test & train
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
-
-        # Create svm model
-        model = LinearDiscriminantAnalysis().fit(x_train, y_train)
-        predictions = model.predict(x_test)
-        print(classification_report(y_test, predictions))
-        return model
-
 def send_request(url, headers, params, next_token=None):
     params['next_token'] = next_token
     response = requests.request('GET', url, headers=headers, params=params)
@@ -187,7 +98,6 @@ def pull_live_tweets(coin):
     # Pull tweets from the last hour
     path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\predicted_trends'
     os.chdir(path)
-    #os.chdir(coin)
 
     print('performing twitter search for coin:', coin)
 
@@ -240,8 +150,8 @@ def gen_model():
     model_cols = ['open', 'high', 'low', 'Volume USD', 'compound', 'positive', 'negative', 'neutral', 'polarity', 'subjectivity', 'price_change']
     os.chdir(r'C:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\hourly_coin_data')
 
-    model_df = pd.read_csv('model_df_1.csv')
-    model_df.drop(['drop_this'], axis=1, inplace=True)
+    model_df = pd.read_csv('model_df_2.csv')
+    model_df = model_df.iloc[: , 1:]                # Drops first column in the dataframe as we don't want/need it.
     # Feature Dataset
     x = model_df
     # Target Dataset
@@ -252,20 +162,20 @@ def gen_model():
     # split into test & train
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
 
-
-    # Create svm model
+    # Create LDA model
     model = LinearDiscriminantAnalysis().fit(x_train, y_train)
+    predictions = model.predict(x_test)
     return model
 
-def make_live_prediction(fetched_tweets_df, model):
+def make_live_prediction(coin, fetched_tweets_df, model):
     path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\prices\LivePrices'
     os.chdir(path)    
 
-    live_prices = pd.read_csv('AVAX_prices.csv')        # read in live prices csv
+    live_prices = pd.read_csv(f'{coin}_prices.csv')        # read in live prices csv
     kept_prices = live_prices.head(60)                  # keep only the last 60 minutes.
     high = kept_prices['high'].max(axis=0)              # Find the max value in the last 60 minutes
     low = kept_prices['low'].min(axis=0)                # find the lowesst value in the last 60 minutes
-    open = kept_prices.iloc[59]['open']                 # Price from 60 minutes ago. (opening price of the last hour)
+    open = kept_prices['open'].values[59]                 # Price from 60 minutes ago. (opening price of the last hour)
     volume = kept_prices['volume'].sum(axis=0)          # summate the total volume traded from the last hour
 
     live_coin_data = pd.DataFrame([[open, high, low, volume]], columns =['open', 'high', 'low', 'volume'])
@@ -277,11 +187,7 @@ def make_live_prediction(fetched_tweets_df, model):
     fetched_tweets_df['cleaned_tweet'] = fetched_tweets_df['text'].apply(lambda x: sift_tweet(str(x).lower(), stopwords))
     combined_cleaned_tweets = ' '.join(fetched_tweets_df['cleaned_tweet'])
 
-    live_coin_data.loc[live_coin_data.index[0],'polarity'] = TextBlob(combined_cleaned_tweets).sentiment[0]            
-    live_coin_data.loc[live_coin_data.index[0],'subjectivity'] = TextBlob(combined_cleaned_tweets).sentiment[1]            
-            
-    live_coin_data
-
+                
     # Get sentiment values on tweets using VADER sentiment analyzer
     sia = get_sentiment(combined_tweets)
     compound = sia['compound']                    # Score representing sum(lexicon ratings)
@@ -293,6 +199,9 @@ def make_live_prediction(fetched_tweets_df, model):
     live_coin_data.loc[live_coin_data.index[0],'pos'] = pos
     live_coin_data.loc[live_coin_data.index[0],'neg'] = neg
     live_coin_data.loc[live_coin_data.index[0],'neu'] = neu
+    live_coin_data.loc[live_coin_data.index[0],'polarity'] = TextBlob(combined_cleaned_tweets).sentiment[0]            
+    live_coin_data.loc[live_coin_data.index[0],'subjectivity'] = TextBlob(combined_cleaned_tweets).sentiment[1]            
+
 
     # make the prediction
     return model.predict_proba(live_coin_data)
@@ -305,37 +214,20 @@ def make_live_prediction(fetched_tweets_df, model):
 @app.get("/prediction_generator/{coin}")
 def generate_prediction(coin: Optional[str] = None):
     
-    # #This is for testing front-end:
-    # num = random.uniform(0,1)
+    # use old model/generate model for that coin
+    model = gen_model()
     
-    # mock_prediction = {"1": num, "2": 1 - num}
-    # mock_response = json.dumps(mock_prediction)
-    # return mock_response
-    
-    # Need to take coin from endpoint information
-
-    # Run twitter search on that coin
     fetched_tweets = pull_live_tweets(f'{coin} lang:en')
     fetched_tweets_df = pd.DataFrame(fetched_tweets['data'])
     fetched_tweets_df.to_csv('recently_fetched_tweets.csv')
 
     # look up prices for that coin from the last hour
-    path = r'c:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\prices\LivePrices'
-    os.chdir(path)
-    url = f'https://www.alphavantage.co/query?function=CRYPTO_INTRADAY&symbol={coin}&market=USD&interval=1min&apikey={av_api_key}&datatype=csv'
-    req = requests.get(url)
-    data = req.content
-    csv_file = open(f'{coin}_prices.csv','wb')
-    csv_file.write(data)
-    csv_file.close()
-
-    # use old model/generate model for that coin
-    model = gen_model()
+    get_prices(coin)   
 
     # make prediction
-    prediction = make_live_prediction(fetched_tweets_df, model)
+    prediction = make_live_prediction(coin, fetched_tweets_df, model)
     d = dict(enumerate(prediction.flatten(), 1))
     resp = json.dumps(d)
-    # return prediction
     
+    # return prediction
     return resp
