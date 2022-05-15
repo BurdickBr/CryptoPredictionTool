@@ -6,17 +6,17 @@ import pandas_datareader as pdr     # Pandas datareader that allows me to lookup
 import numpy as np                  # Numpy
 from alpha_vantage.timeseries import TimeSeries     # Library used for pulling live price data from alphavantage api
 
+import secrets               # This import is referring to the secrets.py file supplied with the submission of the project.
+                                    # Secrets contains the API keys that are used for AlphaVantage and the Twitter API.
+
 from datetime import datetime, timedelta, timezone             # Datetime library.
 import warnings
 warnings.simplefilter(action='ignore', category=ResourceWarning)
 warnings.filterwarnings('ignore')
 
-import random
 import json
-import glob                         # For changing/finding proper directory
 import os                           # For changing/finding proper directory (when opening files)
 import requests
-import twint                        # Twitter web scraping tool with more features than the regular twitter API
 import nest_asyncio                 # Import required for twint usage.
 nest_asyncio.apply()                
 
@@ -35,9 +35,6 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-
-
-
 # Run app with command: python -m uvicorn CryptoPredictionAPI:app --reload
 app = FastAPI()
 
@@ -54,19 +51,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 #|===========================|
 #| Additional files and keys:|
 #|===========================|
-
 
 # Read in stopwords file to list for sifting tweets later on.
 os.chdir(r'C:\Users\WaKaBurd\Documents\GitHub\CryptoPredictionTool\archive')
 stopwords_file = open("stopwords.txt", "r+")
 stopwords = list(stopwords_file.read().split('\n'))
-av_api_key = 'GD982KLZ6PZ69GQ0'
-bearer_token = 'AAAAAAAAAAAAAAAAAAAAAJwBbgEAAAAAyi3tWb4jDN72EZqz6dcWgOIizuc%3DsC3xrWGrxPCwiKwqy2fINUgJDs2qKaZNlITIIy75Pss1oiMeTN'
-
+av_api_key = secrets.av_api_key
 
 #|===========|
 #| Functions |
@@ -113,7 +106,7 @@ def pull_live_tweets(coin):
 
     print(f'searching {from_date} to {to_date}')
     
-    bearer_token = 'AAAAAAAAAAAAAAAAAAAAAJwBbgEAAAAAyi3tWb4jDN72EZqz6dcWgOIizuc%3DsC3xrWGrxPCwiKwqy2fINUgJDs2qKaZNlITIIy75Pss1oiMeTN'
+    bearer_token = secrets.bearer_token
 
     headers = {
         "Authorization": "Bearer {}".format(bearer_token)
